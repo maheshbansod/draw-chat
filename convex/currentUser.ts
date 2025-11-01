@@ -1,5 +1,5 @@
 import { query } from './_generated/server'
-import { getUserIdfromAuthIdentity } from './auth/utils';
+import { getUserIdfromAuthIdentity } from './auth/utils'
 
 export const currentUser = query({
   args: {},
@@ -9,7 +9,7 @@ export const currentUser = query({
       return null
     }
 
-    const userId = getUserIdfromAuthIdentity(identity);
+    const userId = getUserIdfromAuthIdentity(identity)
 
     // Get user profile
     const userProfile = await ctx.db

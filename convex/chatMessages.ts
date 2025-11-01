@@ -13,7 +13,9 @@ export const getChatMessages = query({
     // Get current user's profile
     const currentUserProfile = await ctx.db
       .query('profiles')
-      .withIndex('by_userId', (q) => q.eq('userId', getUserIdfromAuthIdentity(identity)))
+      .withIndex('by_userId', (q) =>
+        q.eq('userId', getUserIdfromAuthIdentity(identity)),
+      )
       .first()
 
     if (!currentUserProfile) {
@@ -68,7 +70,9 @@ export const sendChatMessage = mutation({
     // Get current user's profile
     const currentUserProfile = await ctx.db
       .query('profiles')
-      .withIndex('by_userId', (q) => q.eq('userId', getUserIdfromAuthIdentity(identity)))
+      .withIndex('by_userId', (q) =>
+        q.eq('userId', getUserIdfromAuthIdentity(identity)),
+      )
       .first()
 
     if (!currentUserProfile) {
@@ -124,7 +128,9 @@ export const markMessagesAsRead = mutation({
     // Get current user's profile
     const currentUserProfile = await ctx.db
       .query('profiles')
-      .withIndex('by_userId', (q) => q.eq('userId', getUserIdfromAuthIdentity(identity)))
+      .withIndex('by_userId', (q) =>
+        q.eq('userId', getUserIdfromAuthIdentity(identity)),
+      )
       .first()
 
     if (!currentUserProfile) {

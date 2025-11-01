@@ -52,7 +52,7 @@ function ProfileComponent() {
     return null
   }
 
-  const checkUsername = async () => {
+  const checkUsername = () => {
     if (!username.trim()) return
 
     setIsCheckingUsername(true)
@@ -105,7 +105,7 @@ function ProfileComponent() {
         email: user.email,
       })
 
-      navigate({ to: '/chat' })
+      navigate({ to: '/chats' })
     } catch (error) {
       console.error('Failed to create profile:', error)
       setUsernameError('Failed to create profile. Please try again.')
@@ -114,7 +114,7 @@ function ProfileComponent() {
     }
   }
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     signOut()
     navigate({ to: '/login' })
   }
