@@ -20,6 +20,21 @@ function ProfileComponent() {
   const [usernameError, setUsernameError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const createOrUpdateProfile = useMutation(api.users.createOrUpdateProfile)
+  const isUsernameAvailable = useQuery(
+    api.users.isUsernameAvailable,
+    username ? { username } : 'skip',
+  )
+
+  // Pre-fill form with existing user data if available
+  useEffect(() => {
+    if (user) {
+      setUsername(user.username || '')
+      setDisplayName(user.displayName || '')
+      setProfilePicture(user.profilePicture || '')
+    }
+  }, [user])
+
   // Redirect to login if not authenticated
   if (isLoading) {
     return (
@@ -36,21 +51,6 @@ function ProfileComponent() {
     window.location.href = '/login'
     return null
   }
-
-  // Pre-fill form with existing user data if available
-  useEffect(() => {
-    if (user) {
-      setUsername(user.username || '')
-      setDisplayName(user.displayName || '')
-      setProfilePicture(user.profilePicture || '')
-    }
-  }, [user])
-
-  const createOrUpdateProfile = useMutation(api.users.createOrUpdateProfile)
-  const isUsernameAvailable = useQuery(
-    api.users.isUsernameAvailable,
-    username ? { username } : 'skip',
-  )
 
   const checkUsername = async () => {
     if (!username.trim()) return
