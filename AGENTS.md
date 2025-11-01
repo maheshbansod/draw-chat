@@ -12,21 +12,22 @@
 
 ## Code Style
 
-- Use Prettier config: no semicolons, single quotes, trailing commas
-- Follow TanStack ESLint config
-- TypeScript strict mode enabled
-- Import React components with PascalCase for files/components
-- Use `@/*` path aliases for src imports
-- Functional components with hooks
-- Tailwind CSS for styling
+- Prettier: no semicolons, single quotes, trailing commas
+- TanStack ESLint config with strict TypeScript
+- Import React components with PascalCase, use `@/*` path aliases
+- Functional components with hooks, default exports
+- Tailwind CSS for styling, clsx/tailwind-merge for conditional classes
+- Error handling with try/catch, console.error for logging
 
 ## Convex Specific
 
-- Use `v` validator builder for schemas
-- Include `_id` and `_creationTime` system fields automatically
+- Use `v` validator builder for all schemas (see .cursorrules for full API)
+- System fields `_id` and `_creationTime` are automatic
 - Define tables with `defineTable()` and proper validators
-- Use `v.id()` for foreign key references
-- Add indexes with `.index()` method where needed
+- Use `v.id("tableName")` for foreign key references
+- Add indexes with `.index("indexName", ["field"])` where needed
+- Use `v.union()` and `v.literal()` for enum-like fields
+- Import: `import { defineSchema, defineTable } from "convex/server"`
 
 ## Testing
 
