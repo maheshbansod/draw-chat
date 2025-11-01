@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { MouseEvent, TouchEvent } from 'react';
+import type { MouseEvent, TouchEvent } from 'react'
 
 interface DrawingCanvasProps {
   onDrawingComplete: (dataUrl: string) => void

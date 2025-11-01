@@ -7,6 +7,7 @@ import Header from '../components/Header'
 import ConvexProvider from '../integrations/convex/provider'
 
 import appCss from '../styles.css?url'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -41,8 +42,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <ConvexProvider>
-          <Header />
-          {children}
+          <AuthProvider>
+            <Header />
+            {children}
+          </AuthProvider>
           <TanStackDevtools
             config={{
               position: 'bottom-right',

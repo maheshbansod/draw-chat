@@ -3,15 +3,17 @@ import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import MessageBubble from './MessageBubble'
 import MessageInput from './MessageInput'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function ChatContainer() {
   const messages = useQuery(api.messages.list) || []
   const sendMessage = useMutation(api.messages.send)
   const [isSending, setIsSending] = useState(false)
-  const [currentUser, setCurrentUser] = useState(
-    'User' + Math.floor(Math.random() * 1000),
-  )
+  const { user } = useAuth()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Use authenticated user data or fallback
+  const currentUser = (user as any)?.displayName || 'Anonymous User'
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -52,14 +54,6 @@ export default function ChatContainer() {
             <span className="text-sm font-medium text-blue-600">
               {currentUser}
             </span>
-            <button
-              onClick={() =>
-                setCurrentUser('User' + Math.floor(Math.random() * 1000))
-              }
-              className="text-xs text-gray-500 hover:text-gray-700"
-            >
-              Change
-            </button>
           </div>
         </div>
       </div>
