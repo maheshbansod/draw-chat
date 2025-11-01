@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as messages from "../messages.js";
 import type * as todos from "../todos.js";
 
 import type {
@@ -25,6 +26,7 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  messages: typeof messages;
   todos: typeof todos;
 }>;
 declare const fullApiWithMounts: typeof fullApi;

@@ -11,4 +11,10 @@ export default defineSchema({
     text: v.string(),
     completed: v.boolean(),
   }),
+  messages: defineTable({
+    content: v.string(),
+    type: v.union(v.literal('text'), v.literal('drawing')),
+    author: v.string(),
+    timestamp: v.number(),
+  }).index('by_timestamp', ['timestamp']),
 })
