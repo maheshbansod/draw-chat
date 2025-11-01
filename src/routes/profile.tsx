@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQuery } from 'convex/react'
 import { Camera, Check, User, X } from 'lucide-react'
 import { api } from '../../convex/_generated/api'
@@ -12,13 +12,39 @@ export const Route = createFileRoute('/profile')({
 
 function ProfileComponent() {
   const navigate = useNavigate()
-  const { signOut, user } = useAuth()
+  const { signOut, user, isAuthenticated, isLoading } = useAuth()
   const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [profilePicture, setProfilePicture] = useState('')
   const [isCheckingUsername, setIsCheckingUsername] = useState(false)
   const [usernameError, setUsernameError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Redirect to login if not authenticated
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    window.location.href = '/login'
+    return null
+  }
+
+  // Pre-fill form with existing user data if available
+  useEffect(() => {
+    if (user) {
+      setUsername(user.username || '')
+      setDisplayName(user.displayName || '')
+      setProfilePicture(user.profilePicture || '')
+    }
+  }, [user])
 
   const createOrUpdateProfile = useMutation(api.users.createOrUpdateProfile)
   const isUsernameAvailable = useQuery(

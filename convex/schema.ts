@@ -1,7 +1,9 @@
 import { defineSchema, defineTable } from 'convex/server'
+import { authTables } from '@convex-dev/auth/server'
 import { v } from 'convex/values'
 
 export default defineSchema({
+  ...authTables,
   products: defineTable({
     title: v.string(),
     imageId: v.string(),
@@ -17,7 +19,7 @@ export default defineSchema({
     author: v.string(),
     timestamp: v.number(),
   }).index('by_timestamp', ['timestamp']),
-  users: defineTable({
+  profiles: defineTable({
     userId: v.string(),
     username: v.string(),
     displayName: v.string(),
@@ -25,5 +27,6 @@ export default defineSchema({
     email: v.string(),
   })
     .index('by_userId', ['userId'])
-    .index('by_username', ['username']),
+    .index('by_username', ['username'])
+    .index('by_email', ['email']),
 })

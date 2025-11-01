@@ -1,5 +1,4 @@
 import { query } from './_generated/server'
-import { auth } from './auth'
 
 export const currentUser = query({
   args: {},
@@ -11,10 +10,18 @@ export const currentUser = query({
 
     // Get user profile
     const userProfile = await ctx.db
-      .query('users')
+      .query('profiles')
       .withIndex('by_userId', (q) => q.eq('userId', identity.subject))
       .first()
 
-    return userProfile
+    // Return both identity and profile info
+    return {
+      isAuthenticated: true,
+      userId: identity.subject,
+      email: identity.email || '',
+      name: identity.name || '',
+      profilePictureUrl: identity.pictureUrl,
+      profile: userProfile,
+    }
   },
 })

@@ -14,6 +14,7 @@ interface User {
 interface AuthContextType {
   isAuthenticated: boolean
   user: User | null
+  hasProfile: boolean
   isLoading: boolean
   signIn: (provider: string) => void
   signOut: () => void
@@ -25,14 +26,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { signIn, signOut } = useAuthActions()
 
   // Get current user from our custom query
-  const userProfile = useQuery(api.currentUser.currentUser)
+  const authData = useQuery(api.currentUser.currentUser)
 
-  const isAuthenticated = !!userProfile
-  const isLoading = userProfile === undefined
+  const isAuthenticated = !!authData?.isAuthenticated
+  const hasProfile = !!authData?.profile
+  const isLoading = authData === undefined
+
+  // Extract user data from profile or auth identity
+  const user: User | null =
+    authData?.profile ||
+    (authData
+      ? {
+          userId: authData.userId,
+          username: '', // Will be set in profile
+          displayName: authData.name || authData.email,
+          profilePicture: authData.profilePictureUrl,
+          email: authData.email,
+        }
+      : null)
 
   const value: AuthContextType = {
     isAuthenticated,
-    user: userProfile || null,
+    user,
+    hasProfile,
     isLoading,
     signIn,
     signOut,

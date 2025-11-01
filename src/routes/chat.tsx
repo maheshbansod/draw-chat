@@ -4,14 +4,10 @@ import { useAuth } from '@/hooks/useAuth'
 
 export const Route = createFileRoute('/chat')({
   component: ChatComponent,
-  beforeLoad: async () => {
-    // This runs on the server - you can add server-side auth checks here
-    return {}
-  },
 })
 
 function ChatComponent() {
-  const { isAuthenticated, user, isLoading } = useAuth()
+  const { isAuthenticated, hasProfile, isLoading } = useAuth()
 
   if (isLoading) {
     return (
@@ -30,7 +26,7 @@ function ChatComponent() {
     return null
   }
 
-  if (!user || !user.username) {
+  if (!hasProfile) {
     // Redirect to profile setup if user doesn't have a profile
     window.location.href = '/profile'
     return null
