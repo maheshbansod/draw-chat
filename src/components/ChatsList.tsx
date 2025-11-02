@@ -1,12 +1,16 @@
 import { Link } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
 import { Clock, MessageSquare, Users } from 'lucide-react'
+import { convexQuery } from '@convex-dev/react-query'
 import { api } from '../../convex/_generated/api'
 import { useAuth } from '@/hooks/useAuth'
-import { useStableQuery } from '@/hooks/useStableQuery'
 
 export default function ChatsList() {
   const { user } = useAuth()
-  const chats = useStableQuery(api.chats.getUserChats)
+  const { data: chats = [] } = useQuery({
+    ...convexQuery(api.chats.getUserChats, {}),
+    initialData: [],
+  })
 
   const getChatTitle = (chat: any) => {
     if (chat.type === 'private' && chat.members.length === 2) {
@@ -53,7 +57,7 @@ export default function ChatsList() {
     }
   }
 
-  if (chats && chats.length === 0) {
+  if (chats.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -75,7 +79,7 @@ export default function ChatsList() {
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Your Chats</h1>
 
         <div className="space-y-2">
-          {chats?.map((chat) => (
+          {chats.map((chat) => (
             <Link
               key={chat._id}
               to={getNavigationPath(chat)}

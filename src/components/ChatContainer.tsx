@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { useMutation } from 'convex/react'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { convexQuery, useConvexMutation } from '@convex-dev/react-query'
 import { api } from '../../convex/_generated/api'
 import MessageBubble from './MessageBubble'
 import MessageInput from './MessageInput'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useAuth } from '@/hooks/useAuth'
-import { useStableQuery } from '@/hooks/useStableQuery'
 
 interface ChatContainerProps {
   chatId?: Id<'chats'>
@@ -20,27 +20,37 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
   const currentUser = user
 
   // Get user settings for default input method
-  const userSettings = useStableQuery(
-    api.userSettings.getUserSettings,
-    user?.userId ? { userId: user.userId } : 'skip',
-  )
+  const { data: userSettings } = useQuery({
+    ...convexQuery(
+      api.userSettings.getUserSettings,
+      user?.userId ? { userId: user.userId } : 'skip',
+    ),
+  })
 
   // If no chatId provided, use legacy global chat
-  const legacyMessages = useStableQuery(api.messages.list) || []
-  const chatMessages =
-    useStableQuery(
+  const { data: legacyMessages = [] } = useQuery({
+    ...convexQuery(api.messages.list, {}),
+    initialData: [],
+  })
+
+  const { data: chatMessages = [] } = useQuery({
+    ...convexQuery(
       api.chatMessages.getChatMessages,
       chatId ? { chatId } : 'skip',
-    ) || []
-  const chat = useStableQuery(
-    api.chats.getChatById,
-    chatId ? { chatId } : 'skip',
-  )
+    ),
+    initialData: [],
+  })
+
+  const { data: chat } = useQuery({
+    ...convexQuery(api.chats.getChatById, chatId ? { chatId } : 'skip'),
+  })
 
   const messages = chatId ? chatMessages : legacyMessages
-  const sendMessage = useMutation(
-    chatId ? api.chatMessages.sendChatMessage : api.messages.send,
-  )
+  const { mutate: sendMessage, isPending: isSendingMutation } = useMutation({
+    mutationFn: useConvexMutation(
+      chatId ? api.chatMessages.sendChatMessage : api.messages.send,
+    ),
+  })
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -50,22 +60,19 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
     scrollToBottom()
   }, [messages])
 
-  const handleSendMessage = async (
-    content: string,
-    type: 'text' | 'drawing',
-  ) => {
-    if (isSending || !currentUser) return
+  const handleSendMessage = (content: string, type: 'text' | 'drawing') => {
+    if (isSending || isSendingMutation || !currentUser) return
 
     setIsSending(true)
     try {
       if (chatId) {
-        await sendMessage({
+        sendMessage({
           chatId,
           content,
           type,
         })
       } else {
-        await sendMessage({
+        sendMessage({
           content,
           type,
           author: currentUser.displayName,
@@ -164,7 +171,7 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
       {/* Input Area */}
       <MessageInput
         onSendMessage={handleSendMessage}
-        disabled={isSending}
+        disabled={isSending || isSendingMutation}
         defaultInputMethod={userSettings?.defaultInputMethod || 'keyboard'}
       />
     </div>
