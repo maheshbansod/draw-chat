@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { List, LogOut, MessageSquare, User } from 'lucide-react'
+import { List, LogOut, MessageSquare, Settings, User } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function Header() {
@@ -28,6 +28,18 @@ export default function Header() {
                 >
                   <List size={18} />
                   <span>My Chats</span>
+                </Link>
+
+                <Link
+                  to="/settings"
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                  activeProps={{
+                    className:
+                      'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors',
+                  }}
+                >
+                  <Settings size={18} />
+                  <span>Settings</span>
                 </Link>
 
                 <div className="flex items-center gap-2 pl-4 border-l border-gray-200">

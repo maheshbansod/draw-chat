@@ -5,15 +5,26 @@ import DrawingCanvas from './DrawingCanvas'
 interface MessageInputProps {
   onSendMessage: (content: string, type: 'text' | 'drawing') => void
   disabled?: boolean
+  defaultInputMethod?: 'keyboard' | 'canvas'
 }
 
 export default function MessageInput({
   onSendMessage,
   disabled = false,
+  defaultInputMethod = 'keyboard',
 }: MessageInputProps) {
-  const [inputMode, setInputMode] = useState<'text' | 'drawing'>('text')
+  const [inputMode, setInputMode] = useState<'text' | 'drawing'>(
+    defaultInputMethod === 'canvas' ? 'drawing' : 'text',
+  )
   const [textMessage, setTextMessage] = useState('')
   const [drawingData, setDrawingData] = useState<string | null>(null)
+
+  // Auto-switch to canvas mode when input is focused and default is canvas
+  const handleInputFocus = () => {
+    if (defaultInputMethod === 'canvas' && inputMode === 'text') {
+      setInputMode('drawing')
+    }
+  }
 
   const handleTextSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -98,6 +109,7 @@ export default function MessageInput({
             type="text"
             value={textMessage}
             onChange={(e) => setTextMessage(e.target.value)}
+            onFocus={handleInputFocus}
             placeholder="Type a message..."
             disabled={disabled}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"

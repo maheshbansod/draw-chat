@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ChatsRouteImport } from './routes/chats'
@@ -16,6 +17,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ChatChatIdRouteImport } from './routes/chat/$chatId'
 import { Route as UUsernameChatRouteImport } from './routes/u/$username/chat'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/chats': typeof ChatsRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/chat/$chatId': typeof ChatChatIdRoute
   '/u/$username/chat': typeof UUsernameChatRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/chats': typeof ChatsRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/chat/$chatId': typeof ChatChatIdRoute
   '/u/$username/chat': typeof UUsernameChatRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/chats': typeof ChatsRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/chat/$chatId': typeof ChatChatIdRoute
   '/u/$username/chat': typeof UUsernameChatRoute
 }
@@ -79,6 +88,7 @@ export interface FileRouteTypes {
     | '/chats'
     | '/login'
     | '/profile'
+    | '/settings'
     | '/chat/$chatId'
     | '/u/$username/chat'
   fileRoutesByTo: FileRoutesByTo
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/chats'
     | '/login'
     | '/profile'
+    | '/settings'
     | '/chat/$chatId'
     | '/u/$username/chat'
   id:
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/chats'
     | '/login'
     | '/profile'
+    | '/settings'
     | '/chat/$chatId'
     | '/u/$username/chat'
   fileRoutesById: FileRoutesById
@@ -104,12 +116,20 @@ export interface RootRouteChildren {
   ChatsRoute: typeof ChatsRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
+  SettingsRoute: typeof SettingsRoute
   ChatChatIdRoute: typeof ChatChatIdRoute
   UUsernameChatRoute: typeof UUsernameChatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -160,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatsRoute: ChatsRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
+  SettingsRoute: SettingsRoute,
   ChatChatIdRoute: ChatChatIdRoute,
   UUsernameChatRoute: UUsernameChatRoute,
 }

@@ -59,4 +59,8 @@ export default defineSchema({
     .index('by_userId', ['userId'])
     .index('by_username', ['username'])
     .index('by_email', ['email']),
+  userSettings: defineTable({
+    userId: v.id('users'),
+    defaultInputMethod: v.union(v.literal('keyboard'), v.literal('canvas')),
+  }).index('by_userId', ['userId']),
 })

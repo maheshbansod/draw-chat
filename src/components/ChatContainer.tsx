@@ -18,6 +18,12 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
   // Use authenticated user data or fallback
   const currentUser = user
 
+  // Get user settings for default input method
+  const userSettings = useQuery(
+    api.userSettings.getUserSettings,
+    user?.userId ? { userId: user.userId } : 'skip',
+  )
+
   // If no chatId provided, use legacy global chat
   const legacyMessages = useQuery(api.messages.list) || []
   const chatMessages =
@@ -150,7 +156,11 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
       </div>
 
       {/* Input Area */}
-      <MessageInput onSendMessage={handleSendMessage} disabled={isSending} />
+      <MessageInput
+        onSendMessage={handleSendMessage}
+        disabled={isSending}
+        defaultInputMethod={userSettings?.defaultInputMethod || 'keyboard'}
+      />
     </div>
   )
 }
