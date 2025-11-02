@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery, useConvexMutation } from '@convex-dev/react-query'
 import { api } from '../../convex/_generated/api'
 import MessageBubble from './MessageBubble'
@@ -8,7 +8,7 @@ import type { Id } from '../../convex/_generated/dataModel'
 import { useAuth } from '@/hooks/useAuth'
 
 interface ChatContainerProps {
-  chatId?: Id<'chats'>
+  chatId: Id<'chats'>
 }
 
 export default function ChatContainer({ chatId }: ChatContainerProps) {
@@ -27,25 +27,20 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
     ),
   })
 
-  // If no chatId provided, use legacy global chat
-  const { data: legacyMessages = [] } = useQuery({
-    ...convexQuery(api.messages.list, {}),
-    initialData: [],
-  })
 
-  const { data: chatMessages = [] } = useQuery({
+  const { data: chatMessages = [] } = useSuspenseQuery({
     ...convexQuery(
       api.chatMessages.getChatMessages,
-      chatId ? { chatId } : 'skip',
+      { chatId },
     ),
     initialData: [],
   })
 
-  const { data: chat } = useQuery({
-    ...convexQuery(api.chats.getChatById, chatId ? { chatId } : 'skip'),
-  })
+  const { data: chat } = useSuspenseQuery({
+    ...convexQuery(api.chats.getChatById, { chatId }),
+  });
 
-  const messages = chatId ? chatMessages : legacyMessages
+  const messages = chatMessages;
   const { mutate: sendMessage, isPending: isSendingMutation } = useMutation({
     mutationFn: useConvexMutation(
       chatId ? api.chatMessages.sendChatMessage : api.messages.send,
@@ -154,9 +149,9 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
                   message={
                     chatId
                       ? {
-                          ...message,
-                          author: message.sender?.displayName || 'Unknown',
-                        }
+                        ...message,
+                        author: message.sender?.displayName || 'Unknown',
+                      }
                       : message
                   }
                   isOwn={isOwn}

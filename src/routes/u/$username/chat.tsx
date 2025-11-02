@@ -5,7 +5,7 @@ import { api } from '../../../../convex/_generated/api'
 import ChatContainer from '../../../components/ChatContainer'
 import type { Id } from '../../../../convex/_generated/dataModel'
 import { useAuth } from '@/hooks/useAuth'
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 
 export const Route = createFileRoute('/u/$username/chat')({
@@ -16,7 +16,7 @@ function UsernameChatComponent() {
   const { username } = Route.useParams()
   const router = useRouter()
   const { isAuthenticated, hasProfile, isLoading, user } = useAuth()
-  const { data: existingChatId, isLoading: isChatLoading } = useQuery(
+  const { data: existingChatId, isLoading: isChatLoading } = useSuspenseQuery(
     convexQuery(
       api.chats.getPrivateChatWithUser, {
       otherUsername: username,
@@ -132,7 +132,7 @@ function UsernameChatComponent() {
   }
 
   // Show loading while finding or creating chat
-  if (existingChatId === undefined || (isCreatingChat && !chatId)) {
+  if (existingChatId === undefined || (isCreatingChat && !chatId) || !chatId) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
