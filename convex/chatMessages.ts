@@ -41,13 +41,26 @@ export const getChatMessages = query({
       .order('asc')
       .collect()
 
-    // Get sender profiles for each message
+    // Get sender profiles and attachment data for each message
     const messagesWithSenders = []
     for (const message of messages) {
       const senderProfile = await ctx.db.get(message.senderId)
+
+      let attachment = null
+      let attachmentUrl = null
+
+      if (message.type === 'attachment' && message.attachmentId) {
+        attachment = await ctx.db.get(message.attachmentId)
+        if (attachment) {
+          attachmentUrl = await ctx.storage.getUrl(attachment.storageId)
+        }
+      }
+
       messagesWithSenders.push({
         ...message,
         sender: senderProfile,
+        attachment,
+        attachmentUrl,
       })
     }
 
@@ -59,7 +72,12 @@ export const sendChatMessage = mutation({
   args: {
     chatId: v.id('chats'),
     content: v.string(),
-    type: v.union(v.literal('text'), v.literal('drawing')),
+    type: v.union(
+      v.literal('text'),
+      v.literal('drawing'),
+      v.literal('attachment'),
+    ),
+    attachmentId: v.optional(v.id('attachments')),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
@@ -93,12 +111,18 @@ export const sendChatMessage = mutation({
 
     const timestamp = Date.now()
 
+    // Validate attachment if provided
+    if (args.type === 'attachment' && !args.attachmentId) {
+      throw new Error('Attachment ID is required for attachment messages')
+    }
+
     // Create the message
     const messageId = await ctx.db.insert('chat_messages', {
       chatId: args.chatId,
       senderId: currentUserProfile._id,
       content: args.content,
       type: args.type,
+      attachmentId: args.attachmentId,
       timestamp,
     })
 

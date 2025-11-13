@@ -1,15 +1,23 @@
 import { useRef, useState } from 'react'
-import { Edit, Send, Type } from 'lucide-react'
+import { Edit, Paperclip, Send, Type } from 'lucide-react'
 import DrawingCanvas from './DrawingCanvas'
+import FileUpload from './FileUpload'
+import type { Id } from '../../convex/_generated/dataModel'
 
 interface MessageInputProps {
-  onSendMessage: (content: string, type: 'text' | 'drawing') => void
+  onSendMessage: (
+    content: string,
+    type: 'text' | 'drawing' | 'attachment',
+    attachmentId?: Id<'attachments'>,
+  ) => void
+  onFileUpload?: (file: File) => Promise<Id<'attachments'> | null>
   disabled?: boolean
   defaultInputMethod?: 'keyboard' | 'canvas'
 }
 
 export default function MessageInput({
   onSendMessage,
+  onFileUpload,
   disabled = false,
   defaultInputMethod = 'keyboard',
 }: MessageInputProps) {
@@ -18,7 +26,10 @@ export default function MessageInput({
   )
   const [textMessage, setTextMessage] = useState('')
   const [drawingData, setDrawingData] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [userExplicitlyChoseText, setUserExplicitlyChoseText] = useState(false)
+  const [showFileUpload, setShowFileUpload] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
   const textInputRef = useRef<HTMLInputElement>(null)
 
   // Auto-switch to canvas mode when input is focused and default is canvas
@@ -40,6 +51,32 @@ export default function MessageInput({
       setTextMessage('')
       // Reset explicit text choice after sending a message
       setUserExplicitlyChoseText(false)
+    }
+  }
+
+  const handleFileSelect = (file: File) => {
+    setSelectedFile(file)
+  }
+
+  const handleFileRemove = () => {
+    setSelectedFile(null)
+  }
+
+  const handleSendAttachment = async () => {
+    if (!selectedFile || !onFileUpload) return
+
+    setIsUploading(true)
+    try {
+      const attachmentId = await onFileUpload(selectedFile)
+      if (attachmentId) {
+        onSendMessage(selectedFile.name, 'attachment', attachmentId)
+        setSelectedFile(null)
+        setShowFileUpload(false)
+      }
+    } catch (error) {
+      console.error('Failed to upload file:', error)
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -68,6 +105,10 @@ export default function MessageInput({
     setTimeout(() => {
       textInputRef.current?.focus()
     }, 0)
+  }
+
+  const toggleFileUpload = () => {
+    setShowFileUpload(!showFileUpload)
   }
 
   if (inputMode === 'drawing') {
@@ -118,6 +159,43 @@ export default function MessageInput({
         </div>
       )}
 
+      {selectedFile && (
+        <div className="mb-3 p-2 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">File ready to send</span>
+            <div className="flex gap-2">
+              <button
+                onClick={handleFileRemove}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendAttachment}
+                disabled={disabled || isUploading}
+                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+              >
+                {isUploading ? 'Uploading...' : 'Send File'}
+              </button>
+            </div>
+          </div>
+          <div className="mt-2 text-sm text-gray-700 truncate">
+            {selectedFile.name}
+          </div>
+        </div>
+      )}
+
+      {showFileUpload && (
+        <div className="mb-3">
+          <FileUpload
+            onFileSelect={handleFileSelect}
+            onFileRemove={handleFileRemove}
+            selectedFile={null}
+            disabled={disabled}
+          />
+        </div>
+      )}
+
       <form onSubmit={handleTextSubmit} className="flex gap-2">
         <div className="flex-1 relative">
           <input
@@ -131,6 +209,16 @@ export default function MessageInput({
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
           />
         </div>
+
+        <button
+          type="button"
+          onClick={toggleFileUpload}
+          disabled={disabled}
+          className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+          aria-label="Attach file"
+        >
+          <Paperclip size={20} />
+        </button>
 
         <button
           type="button"

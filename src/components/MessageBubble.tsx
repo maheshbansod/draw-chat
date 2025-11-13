@@ -1,12 +1,24 @@
+import AttachmentPreview from './AttachmentPreview'
 import type { Id } from '../../convex/_generated/dataModel'
 
 interface MessageBubbleProps {
   message: {
     _id: Id<'messages'>
     content: string
-    type: 'text' | 'drawing'
+    type: 'text' | 'drawing' | 'attachment'
     author: string
     timestamp: number
+    attachment?: {
+      _id: Id<'attachments'>
+      storageId: string
+      originalName: string
+      mimeType: string
+      size: number
+      width?: number
+      height?: number
+      uploadedAt: number
+    }
+    attachmentUrl?: string
   }
   isOwn?: boolean
 }
@@ -41,7 +53,7 @@ export default function MessageBubble({
 
         {message.type === 'text' ? (
           <p className="whitespace-pre-wrap break-words">{message.content}</p>
-        ) : (
+        ) : message.type === 'drawing' ? (
           <div className="mt-1">
             <img
               src={message.content}
@@ -49,6 +61,18 @@ export default function MessageBubble({
               className="rounded border border-white/20 max-w-full h-auto"
               style={{ maxHeight: '200px' }}
             />
+          </div>
+        ) : (
+          <div className="mt-1">
+            {message.attachment && (
+              <AttachmentPreview
+                attachment={{
+                  ...message.attachment,
+                  attachmentUrl: message.attachmentUrl,
+                }}
+                className="max-w-full"
+              />
+            )}
           </div>
         )}
 

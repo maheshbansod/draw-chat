@@ -44,7 +44,12 @@ export default defineSchema({
     chatId: v.id('chats'),
     senderId: v.id('profiles'),
     content: v.string(),
-    type: v.union(v.literal('text'), v.literal('drawing')),
+    type: v.union(
+      v.literal('text'),
+      v.literal('drawing'),
+      v.literal('attachment'),
+    ),
+    attachmentId: v.optional(v.id('attachments')),
     timestamp: v.number(),
   })
     .index('by_chatId_timestamp', ['chatId', 'timestamp'])
@@ -59,6 +64,16 @@ export default defineSchema({
     .index('by_userId', ['userId'])
     .index('by_username', ['username'])
     .index('by_email', ['email']),
+  attachments: defineTable({
+    storageId: v.id('_storage'),
+    originalName: v.string(),
+    mimeType: v.string(),
+    size: v.number(),
+    width: v.optional(v.number()),
+    height: v.optional(v.number()),
+    uploadedBy: v.id('profiles'),
+    uploadedAt: v.number(),
+  }).index('by_uploadedBy', ['uploadedBy']),
   userSettings: defineTable({
     userId: v.id('users'),
     defaultInputMethod: v.union(v.literal('keyboard'), v.literal('canvas')),

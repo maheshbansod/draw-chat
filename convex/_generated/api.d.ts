@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as attachments from "../attachments.js";
 import type * as auth_utils from "../auth/utils.js";
 import type * as auth from "../auth.js";
 import type * as chatMessages from "../chatMessages.js";
@@ -35,6 +36,7 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  attachments: typeof attachments;
   "auth/utils": typeof auth_utils;
   auth: typeof auth;
   chatMessages: typeof chatMessages;

@@ -6,6 +6,7 @@ import MessageBubble from './MessageBubble'
 import MessageInput from './MessageInput'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useAuth } from '@/hooks/useAuth'
+import { useFileUpload } from '@/hooks/useFileUpload'
 
 interface ChatContainerProps {
   chatId: Id<'chats'>
@@ -15,6 +16,7 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
   const { user } = useAuth()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isSending, setIsSending] = useState(false)
+  const { uploadFile, isUploading, error: uploadError } = useFileUpload()
 
   // Use authenticated user data or fallback
   const currentUser = user
@@ -27,20 +29,16 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
     ),
   })
 
-
   const { data: chatMessages = [] } = useSuspenseQuery({
-    ...convexQuery(
-      api.chatMessages.getChatMessages,
-      { chatId },
-    ),
+    ...convexQuery(api.chatMessages.getChatMessages, { chatId }),
     initialData: [],
   })
 
   const { data: chat } = useSuspenseQuery({
     ...convexQuery(api.chats.getChatById, { chatId }),
-  });
+  })
 
-  const messages = chatMessages;
+  const messages = chatMessages
   const { mutate: sendMessage, isPending: isSendingMutation } = useMutation({
     mutationFn: useConvexMutation(
       chatId ? api.chatMessages.sendChatMessage : api.messages.send,
@@ -55,23 +53,45 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
     scrollToBottom()
   }, [messages])
 
-  const handleSendMessage = (content: string, type: 'text' | 'drawing') => {
+  const handleSendMessage = (
+    content: string,
+    type: 'text' | 'drawing' | 'attachment',
+    attachmentId?: Id<'attachments'>,
+  ) => {
     if (isSending || isSendingMutation || !currentUser) return
 
     setIsSending(true)
     try {
-      if (chatId) {
-        sendMessage({
-          chatId,
-          content,
-          type,
-        })
+      if (type === 'attachment') {
+        // Handle file upload
+        if (!attachmentId) {
+          console.error('Attachment ID is required for attachment messages')
+          return
+        }
+
+        if (chatId) {
+          sendMessage({
+            chatId,
+            content,
+            type,
+            attachmentId,
+          })
+        }
       } else {
-        sendMessage({
-          content,
-          type,
-          author: currentUser.displayName,
-        })
+        // Handle text and drawing messages
+        if (chatId) {
+          sendMessage({
+            chatId,
+            content,
+            type,
+          })
+        } else {
+          sendMessage({
+            content,
+            type,
+            author: currentUser.displayName,
+          })
+        }
       }
     } catch (error) {
       console.error('Failed to send message:', error)
@@ -149,9 +169,9 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
                   message={
                     chatId
                       ? {
-                        ...message,
-                        author: message.sender?.displayName || 'Unknown',
-                      }
+                          ...message,
+                          author: message.sender?.displayName || 'Unknown',
+                        }
                       : message
                   }
                   isOwn={isOwn}
@@ -166,7 +186,8 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
       {/* Input Area */}
       <MessageInput
         onSendMessage={handleSendMessage}
-        disabled={isSending || isSendingMutation}
+        onFileUpload={uploadFile}
+        disabled={isSending || isSendingMutation || isUploading}
         defaultInputMethod={userSettings?.defaultInputMethod || 'keyboard'}
       />
     </div>
