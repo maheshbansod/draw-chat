@@ -16,47 +16,30 @@ function UsernameChatComponent() {
   const { username } = Route.useParams()
   const router = useRouter()
   const { isAuthenticated, hasProfile, isLoading, user } = useAuth()
-  const { data: existingChatId } = useSuspenseQuery(
-    convexQuery(api.chats.getPrivateChatWithUser, {
-      otherUsername: username,
-    }),
-  )
-  const createPrivateChat = useMutation(api.chats.createPrivateChat)
+  const getOrCreatePrivateChat = useMutation(api.chats.getOrCreatePrivateChat)
   const [error, setError] = useState<string | null>(null)
   const [chatId, setChatId] = useState<Id<'chats'> | null>(null)
   const [isCreatingChat, setIsCreatingChat] = useState(false)
 
-  const handleCreateChat = async () => {
+  const handleGetOrCreateChat = async () => {
     try {
       setIsCreatingChat(true)
-      const id = await createPrivateChat({ otherUsername: username })
+      const id = await getOrCreatePrivateChat({ otherUsername: username })
       setChatId(id)
     } catch (err) {
-      console.error('Failed to create chat:', err)
+      console.error('Failed to get or create chat:', err)
       setError('Failed to create chat. Please make sure the username exists.')
     } finally {
       setIsCreatingChat(false)
     }
   }
 
-  // Set chat ID if found via query
+  // Get or create chat when user is ready
   useEffect(() => {
-    if (existingChatId) {
-      setChatId(existingChatId)
+    if (hasProfile && !chatId && !isCreatingChat) {
+      handleGetOrCreateChat()
     }
-  }, [existingChatId])
-
-  // Create chat if not found and user is ready
-  useEffect(() => {
-    if (
-      hasProfile &&
-      existingChatId === null && // Query finished loading, no chat found
-      !chatId &&
-      !isCreatingChat
-    ) {
-      handleCreateChat()
-    }
-  }, [username, hasProfile, existingChatId, chatId, isCreatingChat])
+  }, [username, hasProfile, chatId, isCreatingChat])
 
   if (isLoading) {
     return (
@@ -118,17 +101,13 @@ function UsernameChatComponent() {
     )
   }
 
-  // Show loading while finding or creating chat
-  if (existingChatId === null || (isCreatingChat && !chatId)) {
+  // Show loading while getting or creating chat
+  if (isCreatingChat && !chatId) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            {existingChatId === null
-              ? `Finding chat with ${username}...`
-              : `Creating chat with ${username}...`}
-          </p>
+          <p className="text-gray-600">Creating chat with {username}...</p>
         </div>
       </div>
     )
