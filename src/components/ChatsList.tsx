@@ -1,15 +1,14 @@
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Clock, MessageSquare, Users } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import { convexQuery } from '@convex-dev/react-query'
 import { api } from '../../convex/_generated/api'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function ChatsList() {
   const { user } = useAuth()
-  const { data: chats = [] } = useQuery({
+  const { data: chats, isLoading } = useQuery({
     ...convexQuery(api.chats.getUserChats, {}),
-    initialData: [],
   })
 
   const getChatTitle = (chat: any) => {
@@ -22,11 +21,31 @@ export default function ChatsList() {
     return chat.name || 'Group Chat'
   }
 
-  const getChatSubtitle = (chat: any) => {
-    if (chat.type === 'group') {
-      return `${chat.members.length} members`
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((word) => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  const getAvatarColor = (name: string) => {
+    const colors = [
+      'bg-blue-500',
+      'bg-green-500',
+      'bg-purple-500',
+      'bg-pink-500',
+      'bg-yellow-500',
+      'bg-indigo-500',
+      'bg-red-500',
+      'bg-teal-500',
+    ]
+    let hash = 0
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash)
     }
-    return 'Private conversation'
+    return colors[Math.abs(hash) % colors.length]
   }
 
   const getNavigationPath = (chat: any) => {
@@ -57,11 +76,34 @@ export default function ChatsList() {
     }
   }
 
-  if (chats.length === 0) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white">
+        <div className="bg-white border-b border-gray-100 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-semibold text-gray-900">Chats</h1>
+            <Link
+              to="/settings"
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <Settings size={20} className="text-gray-600" />
+            </Link>
+          </div>
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-gray-400">Loading...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!chats || chats.length === 0) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <MessageSquare className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <span className="text-2xl text-gray-400">💬</span>
+          </div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
             No chats yet
           </h2>
@@ -74,59 +116,65 @@ export default function ChatsList() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto p-4">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Your Chats</h1>
+    <div className="min-h-screen bg-white">
+      {/* Mobile-style header */}
+      <div className="bg-white border-b border-gray-100 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-gray-900">Chats</h1>
+          <Link
+            to="/settings"
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <Settings size={20} className="text-gray-600" />
+          </Link>
+        </div>
+      </div>
 
-        <div className="space-y-2">
-          {chats.map((chat) => (
+      <div className="divide-y divide-gray-100">
+        {chats.map((chat) => {
+          const chatTitle = getChatTitle(chat)
+          const avatarInitials = getInitials(chatTitle)
+          const avatarColor = getAvatarColor(chatTitle)
+
+          return (
             <Link
               key={chat._id}
               to={getNavigationPath(chat)}
-              className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:border-cyan-300 hover:shadow-md transition-all duration-200"
+              className="block hover:bg-gray-50 transition-colors active:bg-gray-100"
             >
-              <div className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3 flex-1">
-                    <div className="flex-shrink-0">
-                      {chat.type === 'private' ? (
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Users className="w-5 h-5 text-blue-600" />
-                        </div>
-                      ) : (
-                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                          <MessageSquare className="w-5 h-5 text-green-600" />
-                        </div>
-                      )}
-                    </div>
+              <div className="flex items-center px-4 py-3">
+                {/* Avatar */}
+                <div className="flex-shrink-0 mr-3">
+                  <div
+                    className={`w-14 h-14 ${avatarColor} rounded-full flex items-center justify-center`}
+                  >
+                    <span className="text-white font-semibold text-lg">
+                      {avatarInitials}
+                    </span>
+                  </div>
+                </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-lg font-medium text-gray-900 truncate">
-                          {getChatTitle(chat)}
-                        </h3>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Clock className="w-4 h-4 mr-1" />
-                          {formatTimestamp(chat.lastMessageAt)}
-                        </div>
-                      </div>
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-semibold text-gray-900 truncate pr-2">
+                      {chatTitle}
+                    </h3>
+                    <span className="text-xs text-gray-500 flex-shrink-0">
+                      {formatTimestamp(chat.lastMessageAt)}
+                    </span>
+                  </div>
 
-                      <p className="text-sm text-gray-600 mb-1">
-                        {getChatSubtitle(chat)}
-                      </p>
-
-                      {chat.lastMessagePreview && (
-                        <p className="text-sm text-gray-500 truncate">
-                          {chat.lastMessagePreview}
-                        </p>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600 truncate">
+                      {chat.lastMessagePreview || 'No messages yet'}
+                    </p>
                   </div>
                 </div>
               </div>
             </Link>
-          ))}
-        </div>
+          )
+        })}
       </div>
     </div>
   )

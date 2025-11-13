@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { convexQuery, useConvexMutation } from '@convex-dev/react-query'
+import { ArrowLeft } from 'lucide-react'
 import { api } from '../../convex/_generated/api'
 import MessageBubble from './MessageBubble'
 import MessageInput from './MessageInput'
@@ -130,20 +131,20 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header */}
+      {/* Mobile-style Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-800">
+        <div className="flex items-center">
+          <button
+            onClick={() => window.history.back()}
+            className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors mr-3"
+          >
+            <ArrowLeft size={20} className="text-gray-600" />
+          </button>
+          <div className="flex-1">
+            <h1 className="text-lg font-semibold text-gray-800">
               {getChatTitle()}
             </h1>
             <p className="text-sm text-gray-500">{getChatSubtitle()}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Logged in as:</span>
-            <span className="text-sm font-medium text-blue-600">
-              {currentUser?.displayName || 'Anonymous User'}
-            </span>
           </div>
         </div>
       </div>

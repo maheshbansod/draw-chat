@@ -6,7 +6,7 @@ export function SignInWithGoogle() {
   const { signIn } = useAuthActions()
   return (
     <Button
-      className="flex-1"
+      className="flex-1 bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
       variant="outline"
       type="button"
       onClick={() => void signIn('google')}

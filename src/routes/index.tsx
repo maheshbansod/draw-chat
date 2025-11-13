@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowRight, Lock, MessageSquare, Users } from 'lucide-react'
+import ChatsList from '../components/ChatsList'
 import { useAuth } from '@/hooks/useAuth'
 
 export const Route = createFileRoute('/')({ component: Home })
@@ -19,68 +20,7 @@ function Home() {
   }
 
   if (isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 py-16">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Welcome to Chat App
-            </h1>
-            <p className="text-xl text-gray-600 mb-8">
-              Connect with friends through private conversations
-            </p>
-            <Link
-              to="/chats"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-            >
-              <MessageSquare size={20} />
-              View My Chats
-              <ArrowRight size={20} />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Private Chats
-              </h3>
-              <p className="text-gray-600">
-                Have one-on-one conversations with your friends in a secure
-                environment.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                <MessageSquare className="w-6 h-6 text-green-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Real-time Messages
-              </h3>
-              <p className="text-gray-600">
-                Send and receive messages instantly with real-time updates.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                <Lock className="w-6 h-6 text-purple-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Secure & Private
-              </h3>
-              <p className="text-gray-600">
-                Your conversations are private and protected with secure
-                authentication.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    return <ChatsList />
   }
 
   return (

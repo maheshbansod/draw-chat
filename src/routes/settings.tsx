@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from 'convex/react'
-import { ArrowLeft, Edit3, Keyboard, Settings } from 'lucide-react'
+import { ArrowLeft, Edit3, Keyboard } from 'lucide-react'
 import { api } from '../../convex/_generated/api'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
@@ -34,9 +34,9 @@ function SettingsComponent() {
   // Redirect to login if not authenticated
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -68,25 +68,30 @@ function SettingsComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-6">
-      <div className="relative max-w-md w-full">
-        <div className="text-center mb-8">
-          <Settings className="w-12 h-12 text-cyan-400 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
-          <p className="text-gray-300">Customize your chat experience</p>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-100 px-4 py-3">
+        <div className="flex items-center">
+          <button
+            onClick={() => navigate({ to: '/chats' })}
+            className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors mr-3"
+          >
+            <ArrowLeft size={20} className="text-gray-600" />
+          </button>
+          <h1 className="text-xl font-semibold text-gray-900">Settings</h1>
         </div>
+      </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6"
-        >
+      {/* Content */}
+      <div className="max-w-md mx-auto p-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Default Input Method */}
-          <div className="mb-6">
-            <label className="block text-white text-sm font-medium mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Default Input Method
-            </label>
+            </h2>
             <div className="space-y-3">
-              <label className="flex items-center p-4 bg-slate-700/50 border border-slate-600 rounded-lg cursor-pointer hover:bg-slate-700 transition-colors">
+              <label className="flex items-center p-4 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-colors">
                 <input
                   type="radio"
                   name="inputMethod"
@@ -97,20 +102,20 @@ function SettingsComponent() {
                       e.target.value as 'keyboard' | 'canvas',
                     )
                   }
-                  className="w-4 h-4 text-cyan-500 bg-slate-600 border-slate-500 focus:ring-cyan-500 focus:ring-2"
+                  className="w-4 h-4 text-blue-500 border-gray-300 focus:ring-blue-500 focus:ring-2"
                 />
                 <div className="ml-3 flex items-center gap-3">
-                  <Keyboard className="w-5 h-5 text-cyan-400" />
+                  <Keyboard className="w-5 h-5 text-gray-600" />
                   <div>
-                    <div className="text-white font-medium">Keyboard</div>
-                    <div className="text-gray-400 text-sm">
+                    <div className="font-medium text-gray-900">Keyboard</div>
+                    <div className="text-sm text-gray-500">
                       Start with text input by default
                     </div>
                   </div>
                 </div>
               </label>
 
-              <label className="flex items-center p-4 bg-slate-700/50 border border-slate-600 rounded-lg cursor-pointer hover:bg-slate-700 transition-colors">
+              <label className="flex items-center p-4 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-colors">
                 <input
                   type="radio"
                   name="inputMethod"
@@ -121,13 +126,13 @@ function SettingsComponent() {
                       e.target.value as 'keyboard' | 'canvas',
                     )
                   }
-                  className="w-4 h-4 text-cyan-500 bg-slate-600 border-slate-500 focus:ring-cyan-500 focus:ring-2"
+                  className="w-4 h-4 text-blue-500 border-gray-300 focus:ring-blue-500 focus:ring-2"
                 />
                 <div className="ml-3 flex items-center gap-3">
-                  <Edit3 className="w-5 h-5 text-cyan-400" />
+                  <Edit3 className="w-5 h-5 text-gray-600" />
                   <div>
-                    <div className="text-white font-medium">Canvas</div>
-                    <div className="text-gray-400 text-sm">
+                    <div className="font-medium text-gray-900">Canvas</div>
+                    <div className="text-sm text-gray-500">
                       Start with drawing canvas by default
                     </div>
                   </div>
@@ -137,11 +142,11 @@ function SettingsComponent() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-4">
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white"
+              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
             >
               {isSubmitting ? 'Saving...' : 'Save Settings'}
             </Button>
@@ -149,7 +154,7 @@ function SettingsComponent() {
               type="button"
               variant="outline"
               onClick={() => navigate({ to: '/chats' })}
-              className="border-slate-600 text-gray-300 hover:bg-slate-700"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
