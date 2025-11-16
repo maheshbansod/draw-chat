@@ -296,15 +296,94 @@ export const getUserChats = query({
         }
       }
 
+      // If no lastMessagePreview, try to get the latest message
+      let lastMessagePreview = chat.lastMessagePreview
+      if (!lastMessagePreview) {
+        const latestMessage = await ctx.db
+          .query('chat_messages')
+          .withIndex('by_chatId_timestamp', (q) => q.eq('chatId', chat._id))
+          .order('desc')
+          .first()
+
+        if (latestMessage) {
+          if (latestMessage.type === 'drawing') {
+            lastMessagePreview = 'Drawing'
+          } else if (latestMessage.type === 'attachment') {
+            lastMessagePreview = 'Attachment'
+          } else {
+            lastMessagePreview = latestMessage.content.slice(0, 100)
+          }
+        }
+      }
+
       chats.push({
         ...chat,
         members: memberProfiles,
         lastReadAt: membership.lastReadAt,
+        lastMessagePreview,
       })
     }
 
     // Sort by last message time
     return chats.sort((a, b) => b.lastMessageAt - a.lastMessageAt)
+  },
+})
+
+export const updateChatPreviews = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) {
+      throw new Error('Not authenticated')
+    }
+
+    // Get current user's profile
+    const currentUserProfile = await ctx.db
+      .query('profiles')
+      .withIndex('by_userId', (q) =>
+        q.eq('userId', getUserIdfromAuthIdentity(identity)),
+      )
+      .first()
+
+    if (!currentUserProfile) {
+      throw new Error('User profile not found')
+    }
+
+    // Get all chat memberships for the user
+    const memberships = await ctx.db
+      .query('chat_members')
+      .withIndex('by_userId', (q) => q.eq('userId', currentUserProfile._id))
+      .collect()
+
+    for (const membership of memberships) {
+      const chat = await ctx.db.get(membership.chatId)
+      if (!chat || chat.lastMessagePreview) continue
+
+      // Get the latest message for this chat
+      const latestMessage = await ctx.db
+        .query('chat_messages')
+        .withIndex('by_chatId_timestamp', (q) => q.eq('chatId', chat._id))
+        .order('desc')
+        .first()
+
+      if (latestMessage) {
+        let preview: string
+        if (latestMessage.type === 'drawing') {
+          preview = 'Drawing'
+        } else if (latestMessage.type === 'attachment') {
+          preview = 'Attachment'
+        } else {
+          preview = latestMessage.content.slice(0, 100)
+        }
+
+        // Update the chat with the preview
+        await ctx.db.patch(chat._id, {
+          lastMessagePreview: preview,
+        })
+      }
+    }
+
+    return { success: true }
   },
 })
 

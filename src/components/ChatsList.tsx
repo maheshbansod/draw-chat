@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
+import { useMutation } from 'convex/react'
 import { Search, Settings } from 'lucide-react'
 import { convexQuery } from '@convex-dev/react-query'
 import { api } from '../../convex/_generated/api'
@@ -9,10 +10,23 @@ import { Input } from '@/components/ui/input'
 
 export default function ChatsList() {
   const { user } = useAuth()
+  const updateChatPreviews = useMutation(api.chats.updateChatPreviews)
   const { data: chats, isLoading } = useQuery({
     ...convexQuery(api.chats.getUserChats, {}),
   })
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Update chat previews on component mount for chats that don't have them
+  useEffect(() => {
+    if (chats && chats.length > 0) {
+      const chatsWithoutPreviews = chats.filter(
+        (chat) => !chat.lastMessagePreview,
+      )
+      if (chatsWithoutPreviews.length > 0) {
+        updateChatPreviews()
+      }
+    }
+  }, [chats, updateChatPreviews])
 
   const getChatTitle = (chat: any) => {
     if (chat.type === 'private' && chat.members.length === 2) {

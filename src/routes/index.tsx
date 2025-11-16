@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { ArrowRight, MessageSquare, Users, Zap, Palette } from 'lucide-react'
+import { ArrowRight, MessageSquare, Palette, Users, Zap } from 'lucide-react'
 import ChatsList from '../components/ChatsList'
 import { useAuth } from '@/hooks/useAuth'
 

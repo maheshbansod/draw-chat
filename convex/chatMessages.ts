@@ -68,6 +68,162 @@ export const getChatMessages = query({
   },
 })
 
+export const getChatMessagesPaginated = query({
+  args: {
+    chatId: v.id('chats'),
+    limit: v.optional(v.number()),
+    cursor: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) {
+      return { messages: [], hasMore: false, nextCursor: null }
+    }
+
+    // Get current user's profile
+    const currentUserProfile = await ctx.db
+      .query('profiles')
+      .withIndex('by_userId', (q) =>
+        q.eq('userId', getUserIdfromAuthIdentity(identity)),
+      )
+      .first()
+
+    if (!currentUserProfile) {
+      return { messages: [], hasMore: false, nextCursor: null }
+    }
+
+    // Check if user is a member of this chat
+    const membership = await ctx.db
+      .query('chat_members')
+      .withIndex('by_userId_chatId', (q) =>
+        q.eq('userId', currentUserProfile._id).eq('chatId', args.chatId),
+      )
+      .first()
+
+    if (!membership) {
+      return { messages: [], hasMore: false, nextCursor: null }
+    }
+
+    const limit = args.limit || 10
+    let messagesQuery = ctx.db
+      .query('chat_messages')
+      .withIndex('by_chatId_timestamp', (q) => q.eq('chatId', args.chatId))
+
+    // If cursor is provided, get messages older than the cursor
+    if (args.cursor) {
+      messagesQuery = messagesQuery.filter((q) =>
+        q.lt(q.field('timestamp'), args.cursor!),
+      )
+    }
+
+    // Get messages in descending order (newest first) for pagination
+    const messages = await messagesQuery.order('desc').take(limit + 1)
+
+    const hasMore = messages.length > limit
+    const paginatedMessages = hasMore ? messages.slice(0, -1) : messages
+
+    // Get sender profiles and attachment data for each message
+    const messagesWithSenders = []
+    for (const message of paginatedMessages) {
+      const senderProfile = await ctx.db.get(message.senderId)
+
+      let attachment = null
+      let attachmentUrl = null
+
+      if (message.type === 'attachment' && message.attachmentId) {
+        attachment = await ctx.db.get(message.attachmentId)
+        if (attachment) {
+          attachmentUrl = await ctx.storage.getUrl(attachment.storageId)
+        }
+      }
+
+      messagesWithSenders.push({
+        ...message,
+        sender: senderProfile,
+        attachment,
+        attachmentUrl,
+      })
+    }
+
+    // Sort messages back to ascending order (oldest first) for display
+    messagesWithSenders.sort((a, b) => a.timestamp - b.timestamp)
+
+    const nextCursor =
+      hasMore && paginatedMessages.length > 0
+        ? paginatedMessages[paginatedMessages.length - 1].timestamp
+        : null
+
+    return {
+      messages: messagesWithSenders,
+      hasMore,
+      nextCursor,
+    }
+  },
+})
+
+export const getLatestMessagePreview = query({
+  args: { chatId: v.id('chats') },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) {
+      return null
+    }
+
+    // Get current user's profile
+    const currentUserProfile = await ctx.db
+      .query('profiles')
+      .withIndex('by_userId', (q) =>
+        q.eq('userId', getUserIdfromAuthIdentity(identity)),
+      )
+      .first()
+
+    if (!currentUserProfile) {
+      return null
+    }
+
+    // Check if user is a member of this chat
+    const membership = await ctx.db
+      .query('chat_members')
+      .withIndex('by_userId_chatId', (q) =>
+        q.eq('userId', currentUserProfile._id).eq('chatId', args.chatId),
+      )
+      .first()
+
+    if (!membership) {
+      return null
+    }
+
+    // Get the most recent message for this chat
+    const lastMessage = await ctx.db
+      .query('chat_messages')
+      .withIndex('by_chatId_timestamp', (q) => q.eq('chatId', args.chatId))
+      .order('desc')
+      .first()
+
+    if (!lastMessage) {
+      return null
+    }
+
+    const senderProfile = await ctx.db.get(lastMessage.senderId)
+
+    // Generate appropriate preview based on message type
+    let preview: string
+    if (lastMessage.type === 'drawing') {
+      preview = 'Drawing'
+    } else if (lastMessage.type === 'attachment') {
+      preview = 'Attachment'
+    } else {
+      preview = lastMessage.content.slice(0, 100)
+    }
+
+    return {
+      content: preview,
+      timestamp: lastMessage.timestamp,
+      sender: senderProfile?.displayName || 'Unknown',
+    }
+  },
+})
+
 export const sendChatMessage = mutation({
   args: {
     chatId: v.id('chats'),

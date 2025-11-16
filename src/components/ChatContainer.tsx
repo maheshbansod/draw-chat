@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery } from 'convex/react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { api } from '../../convex/_generated/api'
 import MessageBubble from './MessageBubble'
 import MessageInput from './MessageInput'
+import MessagePagination from './MessagePagination'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useAuth } from '@/hooks/useAuth'
 import { useFileUpload } from '@/hooks/useFileUpload'
@@ -27,19 +28,9 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
     user?.userId ? { userId: user.userId } : 'skip',
   )
 
-  const chatMessages = useQuery(
-    api.chatMessages.getChatMessages,
-    chatId ? { chatId } : 'skip',
-  )
-
   const chat = useQuery(api.chats.getChatById, chatId ? { chatId } : 'skip')
 
   const globalMessages = useQuery(api.messages.list)
-
-  const messages = chatId ? (chatMessages ?? []) : (globalMessages ?? [])
-  const isLoading = chatId
-    ? chatMessages === undefined
-    : globalMessages === undefined
 
   const sendMessage = useMutation(
     chatId ? api.chatMessages.sendChatMessage : api.messages.send,
@@ -111,7 +102,7 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages])
+  }, [globalMessages])
 
   const handleSendMessage = async (
     content: string,
@@ -208,46 +199,83 @@ export default function ChatContainer({ chatId }: ChatContainerProps) {
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        {isLoading ? (
-          // Spinner for loading messages
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-500 text-sm">Loading messages...</p>
-            </div>
-          </div>
-        ) : messages.length === 0 ? (
-          <div className="text-center text-gray-500 mt-8">
-            <p className="text-lg mb-2">
-              {chatId ? 'Start the conversation!' : 'Welcome to Drawing Chat!'}
-            </p>
-            <p className="text-sm">
-              Start by typing a message or drawing something.
-            </p>
-          </div>
-        ) : (
-          <div>
-            {messages.map((message: any) => {
-              const isOwn = chatId
-                ? message.sender?.userId === currentUser?.userId
-                : message.author === currentUser?.displayName
+        {chatId ? (
+          <MessagePagination chatId={chatId}>
+            {(messages, loadMore, hasMore, loadingMore) => (
+              <div>
+                {/* Load more button */}
+                {hasMore && (
+                  <div className="flex justify-center mb-4">
+                    <button
+                      onClick={loadMore}
+                      disabled={loadingMore}
+                      className="flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50"
+                    >
+                      <RefreshCw
+                        size={16}
+                        className={loadingMore ? 'animate-spin' : ''}
+                      />
+                      {loadingMore ? 'Loading...' : 'Load more messages'}
+                    </button>
+                  </div>
+                )}
 
-              return (
-                <MessageBubble
-                  key={message._id}
-                  message={
-                    chatId
-                      ? {
-                          ...message,
-                          author: message.sender?.displayName || 'Unknown',
-                        }
-                      : message
-                  }
-                  isOwn={isOwn}
-                />
-              )
-            })}
-            <div ref={messagesEndRef} />
+                {messages.length === 0 ? (
+                  <div className="text-center text-gray-500 mt-8">
+                    <p className="text-lg mb-2">Start the conversation!</p>
+                    <p className="text-sm">
+                      Start by typing a message or drawing something.
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    {messages.map((message: any) => {
+                      const isOwn =
+                        message.sender?.userId === currentUser?.userId
+
+                      return (
+                        <MessageBubble
+                          key={message._id}
+                          message={{
+                            ...message,
+                            author: message.sender?.displayName || 'Unknown',
+                          }}
+                          isOwn={isOwn}
+                        />
+                      )
+                    })}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
+              </div>
+            )}
+          </MessagePagination>
+        ) : (
+          // Global chat (non-paginated)
+          <div>
+            {globalMessages && globalMessages.length === 0 ? (
+              <div className="text-center text-gray-500 mt-8">
+                <p className="text-lg mb-2">Welcome to Drawing Chat!</p>
+                <p className="text-sm">
+                  Start by typing a message or drawing something.
+                </p>
+              </div>
+            ) : (
+              <div>
+                {globalMessages?.map((message: any) => {
+                  const isOwn = message.author === currentUser?.displayName
+
+                  return (
+                    <MessageBubble
+                      key={message._id}
+                      message={message}
+                      isOwn={isOwn}
+                    />
+                  )
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+            )}
           </div>
         )}
       </div>
