@@ -25,6 +25,7 @@ export default function ChatContainer({
   const { getMessages, addMessage } = useMessages()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isSending, setIsSending] = useState(false)
+  const [isFirstLoad, setIsFirstLoad] = useState(true)
   const { uploadFile, isUploading } = useFileUpload()
 
   // Use authenticated user data or fallback
@@ -37,6 +38,11 @@ export default function ChatContainer({
   )
 
   const chat = useQuery(api.chats.getChatById, chatId ? { chatId } : 'skip')
+
+  // Reset first load state when chatId changes
+  useEffect(() => {
+    setIsFirstLoad(true)
+  }, [chatId])
 
   // Check for preloaded messages in context first
   const preloadedMessages = chatId ? getMessages(chatId) : undefined
@@ -110,13 +116,16 @@ export default function ChatContainer({
     }
   })
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior })
   }
 
   useEffect(() => {
-    scrollToBottom()
-  }, [globalMessages])
+    scrollToBottom(isFirstLoad ? 'auto' : 'smooth')
+    if (isFirstLoad) {
+      setIsFirstLoad(false)
+    }
+  }, [globalMessages, isFirstLoad])
 
   const handleSendMessage = async (
     content: string,

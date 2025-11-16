@@ -28,7 +28,6 @@ export default function MessagePagination({
   // Check for preloaded messages
   const preloadedMessages = getMessages(chatId)
   const hasPreloaded = preloadedMessages && preloadedMessages.length > 0
-  console.log({ preloadedMessages })
 
   // Initial load query (only if no preloaded messages and not initialized)
   const initialMessages = useQuery(
@@ -47,7 +46,6 @@ export default function MessagePagination({
   // Initialize or reset when chatId changes
   useEffect(() => {
     if (hasPreloaded) {
-      console.log('has preloaded messages', preloadedMessages.length)
       // Use preloaded messages
       setAllMessages(preloadedMessages)
       setHasMore(false)

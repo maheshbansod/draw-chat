@@ -2,13 +2,44 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMutation } from 'convex/react'
-import { Search, Settings } from 'lucide-react'
+import { Check, Copy, Search, Settings } from 'lucide-react'
 import { convexQuery } from '@convex-dev/react-query'
 import { api } from '../../convex/_generated/api'
 import { useAuth } from '@/hooks/useAuth'
 import { useMessages } from '@/contexts/MessagesContext'
 import { useChatCache } from '@/contexts/ChatCacheContext'
 import { Input } from '@/components/ui/input'
+
+function UsernameChip({ username }: { username: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(username)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full text-sm font-medium transition-colors cursor-pointer group"
+    >
+      <span>{username}</span>
+      {copied ? (
+        <Check size={14} className="text-green-600" />
+      ) : (
+        <Copy
+          size={14}
+          className="text-blue-600 opacity-70 group-hover:opacity-100"
+        />
+      )}
+    </button>
+  )
+}
 
 export default function ChatsList() {
   const { user } = useAuth()
@@ -140,7 +171,10 @@ export default function ChatsList() {
         {/* Header */}
         <div className="bg-white border-b border-gray-100 px-4 py-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-gray-900">Chats</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-semibold text-gray-900">Welcome</h1>
+              {user?.username && <UsernameChip username={user.username} />}
+            </div>
             <Link
               to="/settings"
               className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -197,7 +231,10 @@ export default function ChatsList() {
         {/* Mobile-style header */}
         <div className="bg-white border-b border-gray-100 px-4 py-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-gray-900">Chats</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-semibold text-gray-900">Welcome</h1>
+              {user?.username && <UsernameChip username={user.username} />}
+            </div>
             <Link
               to="/settings"
               className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -261,7 +298,10 @@ export default function ChatsList() {
         {/* Mobile-style header */}
         <div className="bg-white border-b border-gray-100 px-4 py-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-gray-900">Chats</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-semibold text-gray-900">Welcome</h1>
+              {user?.username && <UsernameChip username={user.username} />}
+            </div>
             <Link
               to="/settings"
               className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -321,7 +361,10 @@ export default function ChatsList() {
       {/* Mobile-style header */}
       <div className="bg-white border-b border-gray-100 px-4 py-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">Chats</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-gray-900">Welcome</h1>
+            {user?.username && <UsernameChip username={user.username} />}
+          </div>
           <Link
             to="/settings"
             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
