@@ -93,6 +93,9 @@ export default function ChatContainer({
 
         // Also update the context
         addMessage(chatId, optimisticMessage)
+        setTimeout(() => {
+          scrollToBottom();
+        }, 50);
       }
     } else {
       // Global message optimistic update
