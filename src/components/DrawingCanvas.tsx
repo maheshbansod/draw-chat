@@ -14,6 +14,7 @@ interface DrawingCanvasProps {
   className?: string
   sendOnPenUp?: boolean
   onPenUp?: (dataUrl: string) => void
+  onSendDrawing?: (dataUrl: string) => void
 }
 
 interface DrawingElement {
@@ -29,6 +30,7 @@ export default function DrawingCanvas({
   className = '',
   sendOnPenUp = false,
   onPenUp,
+  onSendDrawing,
 }: DrawingCanvasProps) {
   const stageRef = useRef<any>(null)
   const [isDrawing, setIsDrawing] = useState(false)
@@ -251,7 +253,11 @@ export default function DrawingCanvas({
   const handleUseDrawing = () => {
     const dataUrl = getCanvasData()
     if (dataUrl) {
-      onDrawingComplete(dataUrl)
+      if (onSendDrawing && !sendOnPenUp) {
+        onSendDrawing(dataUrl)
+      } else {
+        onDrawingComplete(dataUrl)
+      }
     }
   }
 
@@ -485,7 +491,7 @@ export default function DrawingCanvas({
           onClick={handleUseDrawing}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
-          Use Drawing
+          {sendOnPenUp ? 'Use Drawing' : 'Send Drawing'}
         </button>
       </div>
     </div>

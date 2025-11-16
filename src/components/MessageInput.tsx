@@ -111,10 +111,12 @@ export default function MessageInput({
     onSendMessage(dataUrl, 'drawing')
   }
 
-  const handleSendDrawing = () => {
-    if (drawingData) {
-      onSendMessage(drawingData, 'drawing')
+  const handleSendDrawing = (dataUrl?: string) => {
+    const drawingToSend = dataUrl || drawingData
+    if (drawingToSend) {
+      onSendMessage(drawingToSend, 'drawing')
       setDrawingData(null)
+      setInputMode('text')
     }
   }
 
@@ -176,6 +178,7 @@ export default function MessageInput({
           onDrawingComplete={handleDrawingComplete}
           sendOnPenUp={effectiveSendOnPenUp}
           onPenUp={effectiveSendOnPenUp ? handleAutoSendDrawing : undefined}
+          onSendDrawing={!effectiveSendOnPenUp ? handleSendDrawing : undefined}
         />
       </div>
     )
@@ -195,7 +198,7 @@ export default function MessageInput({
                 Cancel
               </button>
               <button
-                onClick={handleSendDrawing}
+                onClick={() => handleSendDrawing()}
                 disabled={disabled}
                 className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
               >
