@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { ArrowRight, MessageSquare, Users, Zap, Shield } from 'lucide-react'
+import { ArrowRight, MessageSquare, Users, Zap, Palette } from 'lucide-react'
 import ChatsList from '../components/ChatsList'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -74,15 +74,15 @@ function Home() {
           </div>
 
           <div className="bg-white/80 backdrop-blur rounded-xl p-8 shadow-lg border border-white/20 hover:shadow-xl transition-shadow">
-            <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mb-6">
-              <Shield className="w-7 h-7 text-green-600" />
+            <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center mb-6">
+              <Palette className="w-7 h-7 text-orange-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              Secure by Design
+              Draw & Chat
             </h3>
             <p className="text-gray-600 leading-relaxed">
-              Your conversations stay private with secure authentication and
-              encrypted messaging.
+              Express yourself beyond words. Draw sketches, diagrams, or doodles
+              and share them instantly in your conversations.
             </p>
           </div>
         </div>
