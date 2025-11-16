@@ -412,7 +412,11 @@ export default function DrawingCanvas({
       </div>
 
       {/* Canvas */}
-      <div className="relative bg-white" ref={containerRef}>
+      <div
+        className="relative bg-white"
+        ref={containerRef}
+        style={{ touchAction: 'none' }}
+      >
         <Stage
           width={canvasWidth}
           height={256}
@@ -421,18 +425,23 @@ export default function DrawingCanvas({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onTouchStart={(e) => {
+            e.evt.preventDefault()
             const touch = e.evt.touches[0]
             handleMouseDown({
               e: { ...e.evt, clientX: touch.clientX, clientY: touch.clientY },
             } as any)
           }}
           onTouchMove={(e) => {
+            e.evt.preventDefault()
             const touch = e.evt.touches[0]
             handleMouseMove({
               e: { ...e.evt, clientX: touch.clientX, clientY: touch.clientY },
             } as any)
           }}
-          onTouchEnd={handleMouseUp}
+          onTouchEnd={(e) => {
+            e.evt.preventDefault()
+            handleMouseUp()
+          }}
           className="cursor-crosshair"
         >
           <Layer>
