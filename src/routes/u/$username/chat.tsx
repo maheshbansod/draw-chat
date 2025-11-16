@@ -17,6 +17,7 @@ function UsernameChatComponent() {
   const { isAuthenticated, hasProfile, isLoading, user } = useAuth()
   const { getChatIdByUsername, addChat } = useChatCache()
   const getOrCreatePrivateChat = useMutation(api.chats.getOrCreatePrivateChat)
+  const markMessagesAsRead = useMutation(api.chatMessages.markMessagesAsRead)
   const [error, setError] = useState<string | null>(null)
   const [chatId, setChatId] = useState<Id<'chats'> | null>(null)
   const [isCreatingChat, setIsCreatingChat] = useState(false)
@@ -24,14 +25,11 @@ function UsernameChatComponent() {
   const handleGetOrCreateChat = async () => {
     try {
       setIsCreatingChat(true)
-      const result = await getOrCreatePrivateChat({ otherUsername: username })
+      const newChatId = await getOrCreatePrivateChat({
+        otherUsername: username,
+      })
 
-      // If this is a new chat, add it to cache
-      if (result.chat && result.isNew) {
-        addChat(result.chat)
-      }
-
-      setChatId(result.chatId || result)
+      setChatId(newChatId)
     } catch (err) {
       console.error('Failed to get or create chat:', err)
       setError('Failed to create chat. Please make sure the username exists.')
@@ -52,6 +50,13 @@ function UsernameChatComponent() {
       }
     }
   }, [username, hasProfile, chatId, isCreatingChat, getChatIdByUsername])
+
+  // Mark messages as read when chat is opened
+  useEffect(() => {
+    if (chatId) {
+      markMessagesAsRead({ chatId })
+    }
+  }, [chatId, markMessagesAsRead])
 
   if (isLoading) {
     return (

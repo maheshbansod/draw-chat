@@ -299,6 +299,20 @@ export const sendChatMessage = mutation({
         lastMessageAt: timestamp,
         lastMessagePreview: preview,
       })
+
+      // Update lastReadAt for the sender to prevent their own message from being counted as unread
+      const senderMembership = await ctx.db
+        .query('chat_members')
+        .withIndex('by_userId_chatId', (q) =>
+          q.eq('userId', currentUserProfile._id).eq('chatId', args.chatId),
+        )
+        .first()
+
+      if (senderMembership) {
+        await ctx.db.patch(senderMembership._id, {
+          lastReadAt: timestamp,
+        })
+      }
     }
 
     return messageId
@@ -360,6 +374,57 @@ export const fixMessagePreviews = mutation({
     }
 
     return { success: true }
+  },
+})
+
+export const getUnreadCount = query({
+  args: {
+    chatId: v.id('chats'),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) {
+      return 0
+    }
+
+    // Get current user's profile
+    const currentUserProfile = await ctx.db
+      .query('profiles')
+      .withIndex('by_userId', (q) =>
+        q.eq('userId', getUserIdfromAuthIdentity(identity)),
+      )
+      .first()
+
+    if (!currentUserProfile) {
+      return 0
+    }
+
+    // Check if user is a member of this chat
+    const membership = await ctx.db
+      .query('chat_members')
+      .withIndex('by_userId_chatId', (q) =>
+        q.eq('userId', currentUserProfile._id).eq('chatId', args.chatId),
+      )
+      .first()
+
+    if (!membership) {
+      return 0 // User is not a member of this chat
+    }
+
+    // Get all messages newer than the user's last read timestamp
+    const lastReadAt = membership.lastReadAt || 0
+    const unreadMessages = await ctx.db
+      .query('chat_messages')
+      .withIndex('by_chatId_timestamp', (q) => q.eq('chatId', args.chatId))
+      .filter((q) => q.gt(q.field('timestamp'), lastReadAt))
+      .collect()
+
+    // Count only messages not sent by the current user
+    const unreadCount = unreadMessages.filter(
+      (message) => message.senderId !== currentUserProfile._id,
+    ).length
+
+    return unreadCount
   },
 })
 

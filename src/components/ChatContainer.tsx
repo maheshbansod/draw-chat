@@ -22,7 +22,7 @@ export default function ChatContainer({
   chatType,
 }: ChatContainerProps) {
   const { user } = useAuth()
-  const { getMessages, addMessage } = useMessages()
+  const { addMessage } = useMessages()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const [isFirstLoad, setIsFirstLoad] = useState(true)
@@ -38,14 +38,19 @@ export default function ChatContainer({
   )
 
   const chat = useQuery(api.chats.getChatById, chatId ? { chatId } : 'skip')
+  const markMessagesAsRead = useMutation(api.chatMessages.markMessagesAsRead)
 
   // Reset first load state when chatId changes
   useEffect(() => {
     setIsFirstLoad(true)
   }, [chatId])
 
-  // Check for preloaded messages in context first
-  const preloadedMessages = chatId ? getMessages(chatId) : undefined
+  // Mark messages as read when chat is opened
+  useEffect(() => {
+    if (chatId && chat) {
+      markMessagesAsRead({ chatId })
+    }
+  }, [chatId, chat, markMessagesAsRead])
 
   const globalMessages = useQuery(api.messages.list)
 

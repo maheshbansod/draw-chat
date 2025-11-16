@@ -47,7 +47,11 @@ export default function ChatsList() {
   const { setChatCache } = useChatCache()
   const queryClient = useQueryClient()
   const updateChatPreviews = useMutation(api.chats.updateChatPreviews)
-  const { data: chats, isLoading } = useQuery({
+  const {
+    data: chats,
+    isLoading,
+    refetch: refetchChats,
+  } = useQuery({
     ...convexQuery(api.chats.getUserChats, {}),
   })
   const [searchQuery, setSearchQuery] = useState('')
@@ -89,6 +93,27 @@ export default function ChatsList() {
       })
     }
   }, [chats, updateChatPreviews, queryClient, setMessages, setChatCache])
+
+  // Refetch chats when window gains focus (for real-time updates)
+  useEffect(() => {
+    const handleFocus = () => {
+      refetchChats()
+    }
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refetchChats()
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [refetchChats])
 
   const getChatTitle = (chat: any) => {
     if (chat.type === 'private' && chat.members.length === 2) {
@@ -405,7 +430,7 @@ export default function ChatsList() {
             >
               <div className="flex items-center px-4 py-3">
                 {/* Avatar */}
-                <div className="flex-shrink-0 mr-3">
+                <div className="flex-shrink-0 mr-3 relative">
                   <div
                     className={`w-14 h-14 ${avatarColor} rounded-full flex items-center justify-center`}
                   >
@@ -413,6 +438,12 @@ export default function ChatsList() {
                       {avatarInitials}
                     </span>
                   </div>
+                  {/* Unread count badge */}
+                  {chat.unreadCount > 0 && (
+                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                      {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
+                    </div>
+                  )}
                 </div>
 
                 {/* Content */}

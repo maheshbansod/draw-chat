@@ -316,11 +316,24 @@ export const getUserChats = query({
         }
       }
 
+      // Calculate unread count for this chat
+      const lastReadAt = membership.lastReadAt || 0
+      const unreadMessages = await ctx.db
+        .query('chat_messages')
+        .withIndex('by_chatId_timestamp', (q) => q.eq('chatId', chat._id))
+        .filter((q) => q.gt(q.field('timestamp'), lastReadAt))
+        .collect()
+
+      const unreadCount = unreadMessages.filter(
+        (message) => message.senderId !== currentUserProfile._id,
+      ).length
+
       chats.push({
         ...chat,
         members: memberProfiles,
         lastReadAt: membership.lastReadAt,
         lastMessagePreview,
+        unreadCount,
       })
     }
 
