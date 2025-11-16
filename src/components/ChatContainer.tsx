@@ -8,6 +8,7 @@ import MessagePagination from './MessagePagination'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useAuth } from '@/hooks/useAuth'
 import { useFileUpload } from '@/hooks/useFileUpload'
+import { useMessages } from '@/contexts/MessagesContext'
 
 interface ChatContainerProps {
   chatId: Id<'chats'> | null | undefined
@@ -21,6 +22,7 @@ export default function ChatContainer({
   chatType,
 }: ChatContainerProps) {
   const { user } = useAuth()
+  const { addMessage } = useMessages()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const [isFirstLoad, setIsFirstLoad] = useState(true)
@@ -103,6 +105,8 @@ export default function ChatContainer({
           },
         )
 
+        // Also add to MessagesContext for preloading
+        addMessage(chatId, optimisticMessage)
         setTimeout(() => {
           scrollToBottom()
         }, 50)
