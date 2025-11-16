@@ -317,7 +317,8 @@ export const getUserChats = query({
       }
 
       // Calculate unread count for this chat
-      const lastReadAt = membership.lastReadAt || 0
+      // If lastReadAt is undefined, treat all messages as unread (use 0 as timestamp)
+      const lastReadAt = membership.lastReadAt ?? 0
       const unreadMessages = await ctx.db
         .query('chat_messages')
         .withIndex('by_chatId_timestamp', (q) => q.eq('chatId', chat._id))

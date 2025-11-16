@@ -412,7 +412,8 @@ export const getUnreadCount = query({
     }
 
     // Get all messages newer than the user's last read timestamp
-    const lastReadAt = membership.lastReadAt || 0
+    // If lastReadAt is undefined, treat all messages as unread (use 0 as timestamp)
+    const lastReadAt = membership.lastReadAt ?? 0
     const unreadMessages = await ctx.db
       .query('chat_messages')
       .withIndex('by_chatId_timestamp', (q) => q.eq('chatId', args.chatId))
@@ -462,7 +463,8 @@ export const markMessagesAsRead = mutation({
       throw new Error('User is not a member of this chat')
     }
 
-    // Update last read timestamp
+    // Update last read timestamp to current time
+    // This will mark all existing messages as read for future unread count calculations
     await ctx.db.patch(membership._id, {
       lastReadAt: Date.now(),
     })

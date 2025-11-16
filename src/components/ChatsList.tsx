@@ -430,7 +430,7 @@ export default function ChatsList() {
             >
               <div className="flex items-center px-4 py-3">
                 {/* Avatar */}
-                <div className="flex-shrink-0 mr-3 relative">
+                <div className="flex-shrink-0 mr-3">
                   <div
                     className={`w-14 h-14 ${avatarColor} rounded-full flex items-center justify-center`}
                   >
@@ -438,12 +438,6 @@ export default function ChatsList() {
                       {avatarInitials}
                     </span>
                   </div>
-                  {/* Unread count badge */}
-                  {chat.unreadCount > 0 && (
-                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                      {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
-                    </div>
-                  )}
                 </div>
 
                 {/* Content */}
@@ -458,9 +452,15 @@ export default function ChatsList() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-600 truncate">
+                    <p className="text-sm text-gray-600 truncate flex-1">
                       {chat.lastMessagePreview || 'No messages yet'}
                     </p>
+                    {/* Unread count badge */}
+                    {chat.unreadCount > 0 && (
+                      <div className="ml-2 bg-blue-500 text-white text-xs font-semibold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1.5 shadow-sm">
+                        {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
