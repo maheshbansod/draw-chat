@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import {
   Circle,
   Text as KonvaText,
@@ -33,6 +33,8 @@ export default function DrawingCanvas({
   onSendDrawing,
 }: DrawingCanvasProps) {
   const stageRef = useRef<any>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [canvasWidth, setCanvasWidth] = useState(800)
   const [isDrawing, setIsDrawing] = useState(false)
   const [hasDrawn, setHasDrawn] = useState(false)
   const [color, setColor] = useState('#000000')
@@ -52,6 +54,29 @@ export default function DrawingCanvas({
     x: number
     y: number
   } | null>(null)
+
+  useEffect(() => {
+    const updateCanvasWidth = () => {
+      if (containerRef.current) {
+        const { width } = containerRef.current.getBoundingClientRect()
+        setCanvasWidth(Math.floor(width))
+      }
+    }
+
+    updateCanvasWidth()
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateCanvasWidth()
+    })
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current)
+    }
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [])
 
   const colors = [
     '#000000',
@@ -280,7 +305,7 @@ export default function DrawingCanvas({
 
   return (
     <div
-      className={`border-2 border-gray-300 rounded-lg overflow-hidden ${className}`}
+      className={`border-2 border-gray-300 rounded-lg overflow-hidden w-full ${className}`}
     >
       <div className="bg-gray-100 p-2 flex items-center gap-2 flex-wrap">
         {/* Tool Selection */}
@@ -387,9 +412,9 @@ export default function DrawingCanvas({
       </div>
 
       {/* Canvas */}
-      <div className="relative bg-white">
+      <div className="relative bg-white" ref={containerRef}>
         <Stage
-          width={800}
+          width={canvasWidth}
           height={256}
           ref={stageRef}
           onMouseDown={handleMouseDown}
