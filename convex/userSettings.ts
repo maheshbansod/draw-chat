@@ -11,7 +11,10 @@ export const getUserSettings = query({
 
     // Return default settings if none exist
     return (
-      settings || { defaultInputMethod: 'keyboard' as const, sendOnPenUp: true }
+      settings || {
+        defaultInputMethod: 'keyboard' as const,
+        sendOnPenUp: false,
+      }
     )
   },
 })

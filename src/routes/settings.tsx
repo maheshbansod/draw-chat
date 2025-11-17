@@ -16,7 +16,7 @@ function SettingsComponent() {
   const [defaultInputMethod, setDefaultInputMethod] = useState<
     'keyboard' | 'canvas'
   >('keyboard')
-  const [sendOnPenUp, setSendOnPenUp] = useState(true)
+  const [sendOnPenUp, setSendOnPenUp] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const getUserSettings = useQuery(
